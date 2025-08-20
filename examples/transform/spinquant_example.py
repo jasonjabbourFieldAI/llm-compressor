@@ -18,7 +18,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 #   * apply spinquant transforms to model to reduce quantization loss
 #   * quantize the weights to 4 bit with group size 128
 recipe = [
-    SpinQuantModifier(rotations=["R1", "R2"], transform_type="hadamard"),
+    SpinQuantModifier(rotations=["R3"], transform_type="hadamard"),
     QuantizationModifier(targets="Linear", scheme="W4A16", ignore=["lm_head"]),
 ]
 
@@ -35,6 +35,6 @@ print(tokenizer.decode(output[0]))
 print("==========================================\n\n")
 
 # Save to disk compressed.
-SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquantR1R2-w4a16"
+SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquantR3-w4a16"
 model.save_pretrained(SAVE_DIR, save_compressed=True)
 tokenizer.save_pretrained(SAVE_DIR)
