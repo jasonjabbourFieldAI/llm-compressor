@@ -61,20 +61,24 @@ from compressed_tensors.quantization import (
     QuantizationStrategy,
     QuantizationType,
 )
+from compressed_tensors.quantization.quant_scheme import FP8
 
-scheme = QuantizationScheme(
-    targets=["LlamaAttention"],
-    input_activations=QuantizationArgs(
-        num_bits=8,
-        type=QuantizationType.FLOAT,
-        strategy=QuantizationStrategy.TENSOR,
-        symmetric=False,
+config_groups = {
+    "attention": QuantizationScheme(
+        targets=["LlamaAttention"],
+        input_activations=QuantizationArgs(
+            num_bits=8,
+            type=QuantizationType.FLOAT,
+            strategy=QuantizationStrategy.TENSOR,
+            symmetric=False,
+        ),
     ),
-)
+    "linear": QuantizationScheme(targets=["Linear"], **FP8),
+}
 
 recipe = [
-    SpinQuantModifier(rotations=["R3"], transform_type="hadamard"),
-    QuantizationModifier(config_groups={"attention": scheme}),
+    SpinQuantModifier(rotations=["R1", "R2", "R3", "R4"], transform_type="random-hadamard"),
+    QuantizationModifier(config_groups=config_groups),
 ]
 
 # Apply algorithms.
@@ -90,6 +94,6 @@ print(tokenizer.decode(output[0]))
 print("==========================================\n\n")
 
 # Save to disk compressed.
-SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquantR3-FP8_asym-attn"
+SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquant"
 model.save_pretrained(SAVE_DIR, save_compressed=True)
 tokenizer.save_pretrained(SAVE_DIR)
