@@ -249,30 +249,6 @@ def calibrate_output_hook(module: Module, _args: Any, output: torch.Tensor):
     return output
 
 
-# def register_calibrate_attn_hooks(
-#     modifier: "HooksMixin", attention_impl: "CompressedAttentionImpl"
-# ) -> Set[RemovableHandle]:
-#     return {
-#         modifier.register_hook(
-#             attention_impl, partial(calibrate_input_hook, basename="q"), "query"
-#         ),
-#         modifier.register_hook(
-#             attention_impl, partial(calibrate_input_hook, basename="k"), "key"
-#         ),
-#         modifier.register_hook(
-#             attention_impl, partial(calibrate_input_hook, basename="v"), "value"
-#         ),
-#     }
-
-
-# def initialize_attention_observers(module: Module):
-#     input_args = getattr_chain(module, "quantization_scheme.input_activations", None)
-#     if input_args is not None:
-#         initialize_observer(module, "q", input_args)
-#         initialize_observer(module, "k", input_args)
-#         initialize_observer(module, "v", input_args)
-
-
 def calibrate_kv_cache_input_hook(
     module: Module, args: Any, kwargs: Dict[str, Any]
 ) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
