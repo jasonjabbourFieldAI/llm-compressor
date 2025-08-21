@@ -55,13 +55,30 @@ def tokenize(sample):
 # Configure the quantization algorithm to run.
 #   * apply spinquant transforms to model to reduce quantization loss
 #   * quantize the weights to 4 bit with group size 128
+from compressed_tensors.quantization import (
+    QuantizationArgs,
+    QuantizationScheme,
+    QuantizationStrategy,
+    QuantizationType,
+)
+
+scheme = QuantizationScheme(
+    targets=["LlamaAttention"],
+    input_activations=QuantizationArgs(
+        num_bits=8,
+        type=QuantizationType.FLOAT,
+        strategy=QuantizationStrategy.TENSOR,
+        symmetric=False,
+    ),
+)
+
 recipe = [
     SpinQuantModifier(rotations=["R3"], transform_type="hadamard"),
-    QuantizationModifier(targets=["LlamaAttention"], scheme="FP8", ignore=["lm_head"]),
+    QuantizationModifier(config_groups={"attention": scheme}),
 ]
 
 # Apply algorithms.
-oneshot(model=model, dataset=ds, recipe=recipe, pipeline="sequential")
+oneshot(model=model, dataset=ds, recipe=recipe, pipeline="basic")
 
 # Confirm generations of the quantized model look sane.
 print("\n\n")
@@ -73,6 +90,6 @@ print(tokenizer.decode(output[0]))
 print("==========================================\n\n")
 
 # Save to disk compressed.
-SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquantR3"
+SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquantR3-FP8_asym-attn"
 model.save_pretrained(SAVE_DIR, save_compressed=True)
 tokenizer.save_pretrained(SAVE_DIR)

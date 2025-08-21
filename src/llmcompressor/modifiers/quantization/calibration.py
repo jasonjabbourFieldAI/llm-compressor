@@ -218,14 +218,17 @@ def calibrate_input_hook(module: Module, args: Any):
 
 
 def calibrate_query_hook(module: Module, query_states: torch.Tensor):
+    query_states = query_states.flatten(0, -2)
     calibrate_activations(module, query_states, base_name="q")
 
 
 def calibrate_key_hook(module: Module, key_states: torch.Tensor):
+    key_states = key_states.flatten(0, -2)
     calibrate_activations(module, key_states, base_name="k")
 
 
 def calibrate_value_hook(module: Module, value_states: torch.Tensor):
+    value_states = value_states.flatten(0, -2)
     calibrate_activations(module, value_states, base_name="v")
 
 
