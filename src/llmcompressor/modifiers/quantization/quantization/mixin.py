@@ -238,7 +238,7 @@ class QuantizationMixin(HooksMixin):
             initialize_observer(module, base_name="weight")
 
         # output activations
-        elif output:
+        if output:
             initialize_observer(module, base_name="output")
 
     def _initialize_hooks(self, model: torch.nn.Module) -> Set[RemovableHandle]:
@@ -268,7 +268,7 @@ class QuantizationMixin(HooksMixin):
                     hooks.add(register_value_hook(module, calibrate_value_hook))
 
             # output activations
-            elif output:
+            if output:
                 hooks.add(self.register_hook(module, calibrate_output_hook, "forward"))
 
         return hooks

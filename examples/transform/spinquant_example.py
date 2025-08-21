@@ -7,7 +7,7 @@ from llmcompressor.modifiers.transform import SpinQuantModifier
 from llmcompressor.utils import dispatch_for_generation
 
 # Select model and load it.
-MODEL_ID = "meta-llama/Meta-Llama-3-8B-Instruct"
+MODEL_ID = "meta-llama/Llama-3.2-1B-Instruct"
 
 model = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype="auto")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
@@ -64,21 +64,22 @@ from compressed_tensors.quantization import (
 from compressed_tensors.quantization.quant_scheme import FP8
 
 config_groups = {
-    "attention": QuantizationScheme(
-        targets=["LlamaAttention"],
-        input_activations=QuantizationArgs(
-            num_bits=8,
-            type=QuantizationType.FLOAT,
-            strategy=QuantizationStrategy.TENSOR,
-            symmetric=False,
-        ),
-    ),
+    # "attention": QuantizationScheme(
+    #     targets=["LlamaAttention"],
+    #     input_activations=QuantizationArgs(
+    #         num_bits=8,
+    #         type=QuantizationType.FLOAT,
+    #         strategy=QuantizationStrategy.TENSOR,
+    #         symmetric=False,
+    #     ),
+    # ),
     "linear": QuantizationScheme(targets=["Linear"], **FP8),
 }
 
 recipe = [
-    SpinQuantModifier(rotations=["R1", "R2", "R3", "R4"], transform_type="random-hadamard"),
-    QuantizationModifier(config_groups=config_groups),
+    SpinQuantModifier(rotations=["R1"], transform_type="random-hadamard"),
+    #QuantizationModifier(config_groups=config_groups),
+    #QuantizationModifier(targets="Linear", scheme="W4A16", ignore=["lm_head"]),
 ]
 
 # Apply algorithms.
@@ -94,6 +95,6 @@ print(tokenizer.decode(output[0]))
 print("==========================================\n\n")
 
 # Save to disk compressed.
-SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquant"
-model.save_pretrained(SAVE_DIR, save_compressed=True)
-tokenizer.save_pretrained(SAVE_DIR)
+# SAVE_DIR = MODEL_ID.split("/")[1] + "-spinquant-R1R2R4-W4A16"
+# model.save_pretrained(SAVE_DIR, save_compressed=True)
+# tokenizer.save_pretrained(SAVE_DIR)

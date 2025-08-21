@@ -51,8 +51,8 @@ def initialize_observer(module: Module, base_name: str):
     :param base_name: str used to name the observer attribute
 
     """
-    if base_name == "weights":
-        arg_name = "weight"
+    if base_name == "weight":
+        arg_name = "weights"
     elif base_name == "output":
         arg_name = "output_activations"
     else:
