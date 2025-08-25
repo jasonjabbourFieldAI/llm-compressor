@@ -20,11 +20,15 @@ DEFAULT_PATIENCE = 5
 DEFAULT_AVERAGING_CONSTANT = 0.01
 DEFAULT_GRID = 100.0
 DEFAULT_NORM = 2.4
+ALL_OBSERVER_BASE_NAMES = {"input", "weight", "output", "q", "k", "v"}
 
 __all__ = [
     "initialize_observer",
     "update_weight_zp_scale",
     "calibrate_input_hook",
+    "calibrate_query_hook",
+    "calibrate_key_hook",
+    "calibrate_value_hook",
     "calibrate_output_hook",
     "freeze_module_quantization",
     "apply_calibration_status",
@@ -44,6 +48,7 @@ def initialize_observer(module: Module, base_name: str):
     :param base_name: str used to name the observer attribute
 
     """
+    # resolve arg name in scheme
     if base_name == "weight":
         arg_name = "weights"
     elif base_name == "output":
@@ -279,7 +284,30 @@ def freeze_module_quantization(module: Module):
     module.quantization_status = QuantizationStatus.FROZEN
 
 
+ALL_CALIBRATION_HOOKS = {
+    calibrate_input_hook,
+    calibrate_query_hook,
+    calibrate_key_hook,
+    calibrate_value_hook,
+    calibrate_output_hook,
+}
+
+
 def reset_quantization_status(model: Module):
+    from llmcompressor.modifiers.utils.hooks import HooksMixin
+
     for module in model.modules():
+        # reset status
         if hasattr(module, "quantization_status"):
             delattr(module, "quantization_status")
+
+        # reset observers
+        for base_name in ALL_OBSERVER_BASE_NAMES:
+            attr_name = f"{base_name}_observer"
+            if hasattr(module, attr_name):
+                delattr(module, attr_name)
+
+        # remove hooks (note that removal is idempotent)
+        for handle_id, hook in module._forward_hooks.items():
+            if hook in ALL_CALIBRATION_HOOKS:
+                HooksMixin.remove_hooks_by_id(set(handle_id))

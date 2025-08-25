@@ -123,7 +123,8 @@ class QuantizationMixin(HooksMixin):
 
         :param model: model to attach schemes and observers to
         """
-        reset_quantization_status(model)  # reset any previously applied qconfigs
+        # reset previous statuses, observers, and calibration hooks
+        reset_quantization_status(model)
 
         # apply scheme and status to model
         config = self.resolve_quantization_config()
