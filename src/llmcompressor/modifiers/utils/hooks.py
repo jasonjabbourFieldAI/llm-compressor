@@ -116,7 +116,8 @@ class HooksMixin(BaseModel):
             hook.remove()
 
         self._hooks -= handles
-        self._HOOKS_TO_MODIFIER -= handles
+        for handle in handles:
+            self._HOOKS_TO_MODIFIER.pop(handle, None)
 
     @classmethod
     def remove_hooks_by_id(cls, ids: Set[int]):
