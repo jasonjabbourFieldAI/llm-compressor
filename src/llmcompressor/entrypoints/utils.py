@@ -55,7 +55,7 @@ def pre_process(model_args: "ModelArguments"):
         model_args.distill_teacher = distill_teacher
 
     # Initialize processor
-    if isinstance(model_args.processor, (str, type(None))):
+    if isinstance(model_args.processor, str):
         model_args.processor = initialize_processor_from_path(
             model_args, model_args.model
         )
